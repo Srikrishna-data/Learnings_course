@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chapter 1 — AI Foundations</title>
+<style>
+  @page { size: Letter; margin: .65in .7in .7in; }
+  * { box-sizing: border-box; }
+  body { color:#172033; font: 10.2pt/1.48 Arial, Helvetica, sans-serif; margin:0; }
+  h1,h2,h3 { color:#102a43; line-height:1.2; margin: 20px 0 8px; }
+  h1 { font-size:27pt; letter-spacing:-.6px; margin-top:0; }
+  h2 { font-size:17pt; border-bottom:2px solid #4f46e5; padding-bottom:4px; }
+  h3 { font-size:12pt; color:#3730a3; }
+  p { margin:7px 0; }
+  .cover { min-height:8.3in; padding:1.1in .35in; background:linear-gradient(135deg,#eef2ff,#f8fafc 62%,#e0f2fe); }
+  .eyebrow { color:#4f46e5; font-weight:bold; text-transform:uppercase; letter-spacing:1.4px; font-size:9pt; }
+  .subtitle { font-size:15pt; color:#475569; max-width:6.1in; margin-top:16px; }
+  .meta { margin-top:2.2in; color:#475569; border-left:4px solid #4f46e5; padding-left:14px; }
+  .pagebreak { page-break-before:always; }
+  .callout { background:#eef2ff; border-left:4px solid #4f46e5; padding:10px 13px; margin:12px 0; }
+  .warning { background:#fff7ed; border-left-color:#ea580c; }
+  .diagram { background:#0f172a; color:#e2e8f0; font:8.8pt/1.35 Consolas, monospace; padding:13px; white-space:pre-wrap; margin:10px 0; border-radius:4px; }
+  table { width:100%; border-collapse:collapse; margin:10px 0 14px; font-size:9.2pt; }
+  th { background:#1e293b; color:white; text-align:left; }
+  th,td { padding:7px 8px; border:1px solid #cbd5e1; vertical-align:top; }
+  tr:nth-child(even) { background:#f8fafc; }
+  code { color:#9f1239; font:9pt Consolas, monospace; }
+  pre { background:#0f172a; color:#e2e8f0; padding:12px; overflow:hidden; font:8.5pt/1.38 Consolas, monospace; border-radius:4px; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  ul,ol { margin:6px 0 9px 20px; padding:0; }
+  li { margin:3px 0; }
+  .summary { background:#ecfdf5; border:1px solid #86efac; padding:12px 15px; }
+  .small { color:#64748b; font-size:8.7pt; }
+  a { color:#3730a3; }
+</style>
+</head>
+<body>
+<section class="cover">
+  <div class="eyebrow">AI Engineering in 2026 · Part 1</div>
+  <h1>Chapter 1<br>AI Foundations</h1>
+  <p class="subtitle">A practical first-principles introduction to artificial intelligence, machine learning, deep learning, reinforcement learning, and the vocabulary used by AI engineering teams.</p>
+  <div class="meta"><strong>Suggested time:</strong> 6–8 hours<br><strong>Prerequisite:</strong> basic Python<br><strong>Deliverable:</strong> a small, tested support-triage service and an architecture note</div>
+</section>
+
+<section class="pagebreak">
+<h2>1. What you are building toward</h2>
+<p>An AI engineer does not merely “use a model.” They turn uncertain model behavior into a useful product: a system with data, APIs, interfaces, safety controls, evaluations, monitoring, and a cost envelope. This chapter establishes the mental model needed before discussing mathematics or individual algorithms.</p>
+
+<div class="callout"><strong>Working definition.</strong> Artificial intelligence is software that performs tasks associated with perception, language, prediction, decision-making, or learning. It is an umbrella term. Machine learning, deep learning, and generative AI are important subsets—not synonyms.</div>
+
+<h3>Learning objectives</h3>
+<ul>
+  <li>Explain the difference between rules, machine learning, deep learning, and LLM applications.</li>
+  <li>Use the terms training, inference, feature, label, parameter, loss, and evaluation correctly.</li>
+  <li>Recognize when a deterministic program is better than AI.</li>
+  <li>Describe why production AI needs monitoring, security, and human controls.</li>
+</ul>
+
+<h3>AI is a spectrum of approaches</h3>
+<table><tr><th>Approach</th><th>What it does</th><th>Best fit</th><th>Weakness</th></tr>
+<tr><td>Rules</td><td>Executes explicit logic written by people.</td><td>Known policies, calculations, eligibility.</td><td>Brittle when patterns are too complex to specify.</td></tr>
+<tr><td>Classical ML</td><td>Learns a mapping from structured examples.</td><td>Churn, fraud, demand, ranking.</td><td>Needs representative labeled data.</td></tr>
+<tr><td>Deep learning</td><td>Learns rich representations with neural networks.</td><td>Images, audio, complex text.</td><td>Data/compute hungry and less interpretable.</td></tr>
+<tr><td>Generative AI / LLMs</td><td>Generates or transforms language and multimodal content.</td><td>Drafting, extraction, search assistance, tools.</td><td>Can hallucinate; needs guardrails and evidence.</td></tr></table>
+
+<h3>The system view</h3>
+<div class="diagram">Customer request
+      │
+      ▼
+Product UI / API ──► validation + authentication ──► deterministic rules
+      │                                                    │
+      │                                                    ▼
+      └──────────────────────────────► ML / LLM / tools ─► response or human review
+                                                           │
+                     logs ◄── traces ◄── evaluation ◄─────┘
+</div>
+<p>The important idea is that a model is one component. It does not replace authorization, business logic, source-of-truth data, or accountability.</p>
+</section>
+
+<section>
+<h2>2. A short, useful history of AI</h2>
+<p>History matters because older approaches remain valuable. Most companies still use rule engines, regression, tree models, and search alongside LLMs.</p>
+<table><tr><th>Era</th><th>Core idea</th><th>What remains useful today</th></tr>
+<tr><td>1950s–1970s: symbolic AI</td><td>Represent knowledge as rules and symbols.</td><td>Policy engines, formal constraints, deterministic workflows.</td></tr>
+<tr><td>1980s: expert systems</td><td>Hand-built “if/then” knowledge bases.</td><td>Decision tables and compliance logic.</td></tr>
+<tr><td>1990s–2000s: statistical ML</td><td>Learn patterns from data.</td><td>Classification, regression, ranking, anomaly detection.</td></tr>
+<tr><td>2010s: deep learning</td><td>Large neural networks learn representations.</td><td>Vision, speech, translation, embeddings.</td></tr>
+<tr><td>Late 2010s onward: transformers</td><td>Attention-based networks scale effectively on sequences.</td><td>Foundation models, code, multimodal systems, retrieval.</td></tr>
+<tr><td>Current engineering focus</td><td>Models connected to tools and data.</td><td>Evaluated, secure, observable agentic workflows.</td></tr></table>
+
+<div class="callout warning"><strong>Do not confuse progress with replacement.</strong> A support workflow may use an LLM to understand a customer message, rules to decide refund eligibility, SQL to retrieve the order, and a human to approve an exception. That is usually stronger than an all-LLM system.</div>
+
+<h2>3. Types of AI: narrow AI, AGI, and superintelligence</h2>
+<p><strong>Narrow AI</strong> is specialized: a recommender, fraud model, vision classifier, or assistant. All commercially deployed AI should be treated as narrow AI with bounded operating conditions. <strong>Artificial General Intelligence (AGI)</strong> generally means a hypothetical system able to perform a broad range of intellectual tasks at human-level adaptability. There is no universally accepted measurable threshold. <strong>Superintelligence</strong> describes a speculative capability beyond human performance across most domains.</p>
+
+<p>For an engineer, the practical question is not “Is this AGI?” It is: <em>What tasks, inputs, permissions, error rates, failure modes, and oversight does this system have?</em></p>
+<table><tr><th>Question to ask</th><th>Engineering consequence</th></tr>
+<tr><td>What decisions may it make?</td><td>Define a narrow action allowlist and approval threshold.</td></tr>
+<tr><td>What evidence may it use?</td><td>Use governed sources and retrieval permissions.</td></tr>
+<tr><td>What happens when uncertain?</td><td>Abstain, escalate, or choose a safe fallback.</td></tr>
+<tr><td>How is correctness measured?</td><td>Create a representative evaluation set before rollout.</td></tr></table>
+</section>
+
+<section class="pagebreak">
+<h2>4. Machine learning from first principles</h2>
+<p>Machine learning learns a function from examples. A fraud model might learn <code>f(transaction) → probability of fraud</code>. During <strong>training</strong>, it adjusts numerical values called <strong>parameters</strong> to reduce a <strong>loss</strong>: a number representing how wrong its predictions are. During <strong>inference</strong>, it applies the learned parameters to new inputs.</p>
+
+<div class="diagram">Historical examples
+  features (inputs) + labels (answers)
+                 │
+                 ▼
+            TRAINING ───► learned model artifact
+                 │                  │
+     validation metrics              ▼
+                 │             INFERENCE
+                 └──────► new feature values ───► prediction
+</div>
+
+<div class="two"><div><h3>Classification</h3><p>Predict a discrete category: fraud/not fraud, urgent/normal, approved/denied. Quality may be measured with precision, recall, F1, calibration, and business cost.</p></div><div><h3>Regression</h3><p>Predict a number: delivery time, demand, revenue, price. Quality may be measured with MAE, RMSE, and error by important segment.</p></div></div>
+
+<h3>Features, labels, and leakage</h3>
+<p>A <strong>feature</strong> is information available when making a prediction: order total, country, account age. A <strong>label</strong> is the historical answer: whether a charge was fraudulent. Data leakage occurs when training uses information that would not exist at prediction time, such as a refund field created after a fraud investigation. Leakage produces dazzling offline results and failing production models.</p>
+
+<h3>Minimal Python baseline</h3>
+<pre>from sklearn.linear_model import LogisticRegression
+
+# Features: [account_age_days, number_of_failed_payments]
+X = [[400, 0], [2, 4], [700, 0], [1, 5]]
+# Label: 1 means send to manual review
+y = [0, 1, 0, 1]
+
+model = LogisticRegression().fit(X, y)
+review_probability = model.predict_proba([[3, 3]])[0, 1]
+print(f"Review probability: {review_probability:.2f}")</pre>
+
+<p>This toy model is not production-ready. Production work needs representative data, train/validation/test separation, a decision threshold, monitoring, and a procedure for human feedback.</p>
+
+<h3>Why a model instead of a rule?</h3>
+<p>Rules are excellent when the decision is explicit: “block an account with a verified sanctions match.” A model is useful when thousands of weak signals combine in a pattern people cannot practically enumerate. Often the right design is a rule that overrides or constrains a model.</p>
+</section>
+
+<section>
+<h2>5. Deep learning and neural networks</h2>
+<p>A neural network is a function composed of layers. Each layer applies weighted mathematical transformations; non-linear activation functions let the network represent patterns more complex than a straight line. The word “neural” is historical inspiration, not a claim that the system thinks like a brain.</p>
+
+<div class="diagram">input features ─► [layer 1] ─► [layer 2] ─► output
+                       weights         weights        prediction
+                          ▲                               │
+                          └──── gradients / backprop ─────┘</div>
+
+<p>Deep learning exists because learning intermediate representations directly from raw or complex inputs can outperform hand-designed features. A vision model can learn edges, shapes, and objects. A language model can learn statistical relationships between tokens. The trade-off is more data, compute, experimentation, and more difficult explanations.</p>
+
+<table><tr><th>Use case</th><th>Typical model family</th><th>Why</th></tr>
+<tr><td>Product images</td><td>CNN or vision transformer</td><td>Captures spatial patterns.</td></tr>
+<tr><td>Speech transcription</td><td>Transformer audio model</td><td>Handles long temporal sequences.</td></tr>
+<tr><td>Customer churn table</td><td>Gradient-boosted trees first</td><td>Often simpler and stronger for tabular data.</td></tr>
+<tr><td>Document assistant</td><td>LLM + retrieval</td><td>Understands/generates language with source grounding.</td></tr></table>
+
+<div class="callout"><strong>Best practice:</strong> choose the simplest model that meets a measured requirement. A reliable logistic-regression or tree baseline is an engineering victory, not a compromise.</div>
+
+<h2>6. Reinforcement learning</h2>
+<p>In reinforcement learning, an <strong>agent</strong> observes a <strong>state</strong>, takes an <strong>action</strong>, receives a <strong>reward</strong>, and learns a <strong>policy</strong> for future actions. The challenge is delayed credit: an action can have consequences many steps later.</p>
+<div class="diagram">environment state ─► agent policy ─► action
+       ▲                                      │
+       └──────── reward + next state ◄────────┘</div>
+<p>Industry uses include control, ranking/optimization, games, simulation, and preference optimization. It is usually a poor first choice for a business workflow: rewards are hard to design, online mistakes can be costly, and safe exploration is difficult. In LLM post-training, preference-based methods use human or synthetic comparisons to steer responses; application engineers normally consume the resulting models rather than run RL themselves.</p>
+</section>
+
+<section class="pagebreak">
+<h2>7. Essential AI terminology</h2>
+<table><tr><th>Term</th><th>Plain meaning</th><th>Why an engineer cares</th></tr>
+<tr><td>Training</td><td>Learning parameters from data.</td><td>Expensive, slow, and a data-governance event.</td></tr>
+<tr><td>Inference</td><td>Using a trained model on new input.</td><td>Drives user latency and recurring cost.</td></tr>
+<tr><td>Loss</td><td>Numeric measure of model error during training.</td><td>Lower training loss alone does not prove usefulness.</td></tr>
+<tr><td>Overfitting</td><td>Memorizing training patterns that do not generalize.</td><td>Requires held-out validation and monitoring.</td></tr>
+<tr><td>Embedding</td><td>Vector representation of meaning/content.</td><td>Enables semantic retrieval and similarity.</td></tr>
+<tr><td>Hallucination</td><td>Plausible but unsupported generated content.</td><td>Requires evidence, constraints, and safe failure UX.</td></tr>
+<tr><td>Drift</td><td>Input, behavior, or outcome changes over time.</td><td>Models and retrieval indexes must be monitored.</td></tr>
+<tr><td>Latency</td><td>Time per request.</td><td>Measure p50/p95 end-to-end, not just model time.</td></tr>
+<tr><td>Throughput</td><td>Work completed per unit time.</td><td>Controls capacity and cost.</td></tr>
+<tr><td>Evaluation</td><td>Repeatable measurement of behavior.</td><td>Prevents demo-driven releases.</td></tr>
+<tr><td>Guardrail</td><td>Layered constraint/control around AI.</td><td>Not merely a system prompt.</td></tr></table>
+
+<h2>8. Real-world case study: support triage</h2>
+<p>A retailer receives messages such as “My package is late,” “I need a refund,” and “Someone used my card.” The desired system classifies urgency and route, fetches permitted order data, drafts an answer, and escalates risky cases.</p>
+<div class="diagram">Ticket ─► validate/authenticate ─► rules ─► classifier ─► route
+                                  │             │             │
+                                  │             │             ├─► fraud: human team
+                                  │             │             ├─► shipping: order lookup
+                                  │             │             └─► refund: policy + approval
+                                  ▼             ▼
+                             audit event    metrics / feedback</div>
+
+<h3>Design choices</h3>
+<ol>
+  <li>Use rules for non-negotiable routes: suspected account takeover always escalates.</li>
+  <li>Use a small classifier for common categories; evaluate false negatives carefully.</li>
+  <li>Use an LLM only to draft or extract when it offers clear value.</li>
+  <li>Never let generated text approve a refund, access another customer’s order, or decide employment/credit outcomes.</li>
+  <li>Log a redacted trace: model version, route, confidence, latency, outcome, and human correction.</li>
+</ol>
+
+<h3>Production-oriented code</h3>
+<pre>from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Ticket:
+    text: str
+    customer_id: str
+
+def route(ticket: Ticket) -> str:
+    text = ticket.text.lower()
+    # Policy overrides model behavior.
+    if any(term in text for term in ("stolen card", "account hacked")):
+        return "security_human_review"
+    if "refund" in text:
+        return "refund_policy_workflow"
+    return "shipping_or_general_classifier"
+
+assert route(Ticket("My card was stolen", "cust_7")) == "security_human_review"</pre>
+
+<p><strong>Cost note:</strong> rules are effectively free per decision; a compact ML classifier usually costs CPU milliseconds; an LLM adds variable token cost and latency. Place the expensive component only where its quality advantage changes the outcome.</p>
+</section>
+
+<section>
+<h2>9. Common mistakes and practical checks</h2>
+<table><tr><th>Mistake</th><th>Better practice</th></tr>
+<tr><td>Calling every automation “AI.”</td><td>State the exact task, input, decision, metric, and owner.</td></tr>
+<tr><td>Choosing an LLM before defining the problem.</td><td>Build a rule/baseline and measure the improvement needed.</td></tr>
+<tr><td>Using accuracy as the only metric.</td><td>Include error costs, precision/recall, latency, safety, and user outcomes.</td></tr>
+<tr><td>Testing on the training data.</td><td>Use separate validation/test data; evaluate production samples.</td></tr>
+<tr><td>Assuming a fluent answer is correct.</td><td>Use source evidence, structured validation, and escalation paths.</td></tr>
+<tr><td>Logging all prompts and PII by default.</td><td>Minimize/redact logs and enforce retention/access controls.</td></tr></table>
+
+<h2>10. Interview practice</h2>
+<ol>
+<li>Explain AI, ML, deep learning, and generative AI to a product manager.</li>
+<li>When would you use a rule instead of a learned model?</li>
+<li>Define overfitting and give two production defenses.</li>
+<li>What is the difference between training and inference cost?</li>
+<li>Why is a model with 99% accuracy potentially unsafe?</li>
+<li>Describe a system where an LLM should not make the final decision.</li>
+<li>How would you detect that a support classifier is degrading?</li>
+<li>What is reward design, and why is it difficult in RL?</li>
+</ol>
+
+<div class="summary"><strong>Chapter summary.</strong> AI engineering begins by selecting the smallest dependable approach for a defined task. Rules encode known policy. ML learns from structured examples. Deep learning learns complex representations. RL optimizes sequential reward but is difficult to apply safely. LLMs are powerful generative components, not decision makers or security boundaries. Every production system needs a measurable objective, representative evaluation, controlled actions, and monitoring.</div>
+
+<h2>Hands-on project: support-triage baseline</h2>
+<p>Build a small FastAPI service with <code>POST /triage</code>. Accept ticket text and a customer ID; apply policy overrides; return a route; write unit tests for the security/refund/general paths. Add a README that records the intended metric, an example failure, and what data you would collect before training a classifier. Do not use real customer data.</p>
+
+<h3>Further reading</h3>
+<ul>
+<li><a href="https://developers.google.com/machine-learning/guides/rules-of-ml">Google: Rules of Machine Learning</a></li>
+<li><a href="https://scikit-learn.org/stable/user_guide.html">scikit-learn User Guide</a></li>
+<li><a href="https://www.deeplearningbook.org/">Deep Learning Book</a> (reference chapters as needed)</li>
+<li><a href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI Risk Management Framework</a></li>
+</ul>
+<p class="small">Next chapter: Practical Mathematics for AI Engineers — vectors, probability, statistics, derivatives, gradient descent, and optimization through working examples.</p>
+</section>
+</body>
+</html>

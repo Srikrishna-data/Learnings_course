@@ -1,0 +1,541 @@
+﻿<!doctype html><html><head><meta charset="utf-8"><title>Practical AI and Data Engineering Course</title><style>@page{size:Letter;margin:.65in .7in}body{font:10.2pt/1.48 Arial;color:#172033;max-width:7in;margin:auto}h1{font-size:26pt;color:#102a43;border-bottom:4px solid #4f46e5;padding-bottom:10px}h2{font-size:17pt;color:#102a43;page-break-before:always;border-bottom:2px solid #4f46e5;padding-bottom:4px}h3{font-size:12pt;color:#3730a3}p{margin:7px 0}hr{border:0;border-top:1px solid #cbd5e1;margin:18px 0}li{margin:4px 0}pre{background:#0f172a;color:#e2e8f0;padding:12px;white-space:pre-wrap;font:8.5pt/1.35 Consolas;border-radius:4px}strong{color:#172554}code{font-family:Consolas;color:#9f1239}</style></head><body><p style="color:#4f46e5;font-weight:bold;letter-spacing:1px">PRACTICAL AI AND DATA ENGINEERING · 2026</p><h1>AI Engineering in 2026 &#226;€” A Practical 20-Part Course</h1>
+
+<strong>Audience:</strong> a developer with basic Python. **Outcome:** build, evaluate, secure, deploy, and operate industry-grade AI products. **Pace:** 32 weeks, 8&#226;€“12 hours/week. Every part follows the same practical pattern: explain, diagram, example, code, production design, cost/token note, interview prompts, project, and resources.
+
+<h2>How to work through it</h2>
+
+<p>Build one portfolio repository per project. Every repository needs a README, locked dependencies, tests, `.env.example`, an evaluation dataset, an architecture diagram, and a cost/latency report. Start with managed APIs and simple workflows; introduce a framework, agents, or GPUs only when a measured requirement needs them.</p>
+
+<hr>
+<h2>Part 1 &#226;€” AI Foundations (Weeks 1&#226;€“2)</h2>
+
+<strong>Concepts.</strong> AI is software that performs tasks associated with perception, language, decisions, or learning. A short history: symbolic/rule-based systems &#226;†’ statistical ML &#226;†’ deep learning &#226;†’ transformer foundation models &#226;†’ tool-using multimodal systems. **Narrow AI** solves bounded tasks; **AGI** is a hypothetical general capability across domains; **superintelligence** is speculative capability beyond humans. Do not present either AGI or superintelligence as a deployed product category. ML learns from examples; deep learning is ML using multi-layer neural networks; reinforcement learning (RL) learns actions from rewards.
+
+<strong>Terminology.</strong> Dataset, feature, label, parameter, training, inference, loss, epoch, batch, overfitting, generalization, benchmark, latency, throughput, hallucination, grounding, evaluation, model card, and drift.
+
+<pre>
+<p>examples + objective -&gt; training -&gt; model parameters -&gt; inference(input) -&gt; prediction/action</p>
+<p>                                      ^                                  |</p>
+<p>                                      +---- evaluation and feedback ------+</p>
+</pre>
+
+<strong>Real-world use.</strong> Rules handle a known shipping fee; ML predicts churn; an LLM explains the prediction and drafts retention outreach. This combination is more reliable than asking a chatbot to do all three.
+
+<strong>Python.</strong>
+<pre>python
+<p>def rule_shipping(country: str) -&gt; float:</p>
+<p>    return 0.0 if country == &quot;US&quot; else 15.0</p>
+</pre>
+
+<strong>Production / economics.</strong> Keep deterministic business rules outside the model. Measure a business metric (resolved tickets, conversion, error rate), not only model fluency. Classical ML is usually lower-latency and lower-cost than an LLM for a stable tabular prediction.
+
+<strong>Pitfalls / interview.</strong> &#226;€œAI&#226;€ is not synonymous with LLM. Ask: What is the difference between training and inference? Why does overfitting harm a production system?
+
+<strong>Project.</strong> Build a small support-triage API: deterministic routing plus a trainable priority classifier.
+
+<strong>Resources.</strong> [Google ML rules](https://developers.google.com/machine-learning/guides/rules-of-ml), [scikit-learn guide](https://scikit-learn.org/stable/user_guide.html).
+
+<hr>
+<h2>Part 2 &#226;€” Practical Mathematics (Weeks 3&#226;€“4)</h2>
+
+<strong>Concepts.</strong> Learn only the mathematics needed to reason about models.
+
+<li>**Linear algebra:** a vector is an ordered list; a matrix transforms vectors; dot product measures alignment; norms measure size. Embeddings use vectors and cosine similarity.</li>
+<li>**Probability:** uncertainty as numbers from 0&#226;€“1; conditional probability asks &#226;€œgiven evidence&#226;€; distributions describe possible outcomes.</li>
+<li>**Statistics:** mean/median, variance, sampling, correlation, confidence intervals, and train/test splits prevent fooled-by-noise decisions.</li>
+<li>**Calculus:** a derivative tells local change; the chain rule lets gradients flow through neural-network layers.</li>
+<li>**Gradient descent / optimization:** repeatedly move parameters opposite the loss gradient. Learning rate trades slow progress for instability; regularization reduces overfitting.</li>
+
+<pre>
+<p>input vector --[weights + bias]--&gt; prediction --compare to label--&gt; loss</p>
+<p>     ^                                                        |</p>
+<p>     +---------------- gradient descent updates weights -------+</p>
+</pre>
+
+<strong>Real-world use.</strong> Rank the most relevant policy paragraph by cosine similarity, then show a user the source.
+
+<strong>Python.</strong>
+<pre>python
+<p>import numpy as np</p>
+<p>def cosine(a, b): return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))</p>
+<p>loss = lambda w: (w - 3) ** 2</p>
+<p>w, lr = 0.0, 0.1</p>
+<p>for _ in range(30): w -= lr * (2 * (w - 3))</p>
+<p>print(w, loss(w))</p>
+</pre>
+
+<strong>Production / economics.</strong> Normalize vectors consistently; compute embeddings once and reuse them. Use confidence intervals before claiming an A/B-test win. Do not hand-derive backpropagation in application work, but understand what an optimizer is optimizing.
+
+<strong>Pitfalls / interview.</strong> Correlation is not causation; a biased sample produces a biased estimate. Ask: Why can a high learning rate diverge? Why is cosine similarity useful for embeddings?
+
+<strong>Project.</strong> Implement linear regression and gradient descent from NumPy, then compare against scikit-learn.
+
+<strong>Resources.</strong> [3Blue1Brown linear algebra](https://www.3blue1brown.com/topics/linear-algebra), [StatQuest](https://www.youtube.com/@statquest).
+
+<hr>
+<h2>Part 3 &#226;€” Machine Learning (Weeks 5&#226;€“7)</h2>
+
+<strong>Concepts.</strong> **Supervised learning** maps inputs to labels: classification predicts a category; regression predicts a number. **Unsupervised learning** finds structure without labels: clustering, anomaly detection, dimensionality reduction. **RL** learns a policy by reward through interaction. Use supervised ML for churn/fraud/forecasting; use unsupervised methods to segment customers or inspect data; use RL only where sequential rewards and safe simulation/feedback exist.
+
+<strong>Algorithms.</strong> Linear/logistic regression: transparent baseline. Decision trees/random forests: strong tabular baseline. **XGBoost:** boosted trees, often excellent for tabular data but needs tuning. **SVM:** effective in moderate-size high-dimensional data. **KNN:** simple local similarity baseline but slow at scale. K-means: simple clustering; DBSCAN: irregular-density clusters.
+
+<pre>
+<p>versioned data -&gt; features -&gt; train candidates -&gt; validation -&gt; registry -&gt; API/batch prediction</p>
+<p>                                      |                         |             |</p>
+<p>                                  metrics + bias checks ------ monitor drift --+</p>
+</pre>
+
+<strong>Python.</strong>
+<pre>python
+<p>from sklearn.ensemble import RandomForestClassifier</p>
+<p>X, y = [[0, 1], [1, 1], [0, 0], [1, 0]], [0, 1, 0, 1]</p>
+<p>model = RandomForestClassifier(random_state=7).fit(X, y)</p>
+<p>print(model.predict([[1, 1]]))</p>
+</pre>
+
+<strong>Production / economics.</strong> Establish a simple baseline; split by time if the future resembles production; version features/data/model. Trees on CPUs often cost much less than LLM calls and are easier to explain. Monitor calibration, drift, false-positive cost, and business impact.
+
+<strong>Pitfalls / interview.</strong> Never leak future data. Ask: Random forest vs XGBoost? Precision vs recall? When is clustering inappropriate?
+
+<strong>Project.</strong> Churn predictor comparing logistic regression, random forest, and XGBoost; publish confusion matrices and a threshold decision.
+
+<strong>Resources.</strong> [scikit-learn](https://scikit-learn.org/stable/user_guide.html), [XGBoost](https://xgboost.readthedocs.io/).
+
+<hr>
+<h2>Part 4 &#226;€” Deep Learning (Weeks 8&#226;€“10)</h2>
+
+<strong>Concepts.</strong> Neural networks learn layered representations via backpropagation. **PyTorch** is common in research and flexible production work; **TensorFlow/Keras** remains common in established enterprises and mobile/TF-serving ecosystems. **CNNs** exploit image locality. **RNNs/LSTMs** process sequences but are now often replaced by transformers. A **transformer** uses attention: each token weighs relevant tokens. Positional encoding supplies order because attention alone has none.
+
+<pre>
+<p>tokens/images -&gt; encoder layers (attention + MLP + residuals) -&gt; task head -&gt; loss -&gt; gradients</p>
+</pre>
+
+<strong>Python.</strong>
+<pre>python
+<p>import torch</p>
+<p>net = torch.nn.Sequential(torch.nn.Linear(2, 8), torch.nn.ReLU(), torch.nn.Linear(8, 1))</p>
+<p>x = torch.tensor([[1.0, 2.0]])</p>
+<p>print(net(x))</p>
+</pre>
+
+<strong>Production / economics.</strong> Use transfer learning and pretrained checkpoints; train on GPUs only when the workload justifies it. Store checkpoints, dataset versions, seeds, and metrics. GPU time, data labeling, and experimentation are the real costs; do not train a model when a hosted model or classical baseline meets the requirement.
+
+<strong>Pitfalls / interview.</strong> More layers/data do not guarantee generalization. Ask: Why residual connections? Why is attention quadratic in na&#195;&#175;ve sequence length? CNN vs transformer for images?
+
+<strong>Project.</strong> PyTorch image classifier with augmentation, validation, error analysis, and an exported inference API; reproduce one small Keras model to understand both ecosystems.
+
+<strong>Resources.</strong> [PyTorch tutorials](https://pytorch.org/tutorials/), [TensorFlow guides](https://www.tensorflow.org/learn), [Attention paper](https://arxiv.org/abs/1706.03762).
+
+<hr>
+<h2>Part 5 &#226;€” Large Language Models (Weeks 11&#226;€“13)</h2>
+
+<strong>Concepts.</strong> An LLM is a transformer trained to predict tokens at scale, then adapted to follow instructions. A tokenizer maps text to token IDs from a fixed **vocabulary**. The **context window** bounds input plus generated output. Temperature, top-p, and top-k change sampling diversity&#226;€”not factuality. Training commonly progresses through pretraining, supervised instruction tuning, and preference optimization such as **RLHF** or **DPO**.
+
+<strong>Adaptation / efficiency.</strong> Fine-tuning modifies behavior; **PEFT**, **LoRA**, and **QLoRA** train small adapters rather than all weights. **MoE** activates a subset of expert parameters per token. Quantization stores weights at fewer bits for cheaper/faster inference; distillation transfers behavior from a stronger teacher to a smaller student.
+
+<pre>
+<p>raw text -&gt; tokenize -&gt; pretrain next-token prediction -&gt; instruction/preference tuning -&gt; deploy</p>
+<p>user prompt + context ----------------------------------------&gt; decode tokens -&gt; response</p>
+</pre>
+
+<strong>Python.</strong>
+<pre>python
+<p>def sample(logits, temperature=0.7, top_p=0.9):</p>
+<p>    if temperature &lt;= 0: raise ValueError(&quot;use deterministic decoding separately&quot;)</p>
+<p>    return &quot;provider tokenizer/sampler performs this operation&quot;</p>
+</pre>
+
+<strong>Production / economics.</strong> Set explicit max output, temperature, timeout, retry, and model version. Fine-tune only after a prompt/RAG baseline and a held-out evaluation set. Quantization may reduce GPU memory but can hurt quality and tool-call reliability; validate it on your task.
+
+<strong>Pitfalls / interview.</strong> Context is not long-term memory. DPO is not simply &#226;€œRLHF without quality work.&#226;€ Ask: LoRA vs full fine-tuning? What makes MoE cheap per token but operationally complex? How do top-p and temperature differ?
+
+<strong>Project.</strong> Token-budget inspector plus a controlled experiment: zero-shot vs few-shot vs retrieval vs LoRA plan on one structured-extraction task.
+
+<strong>Resources.</strong> [Hugging Face LLM course](https://huggingface.co/learn/llm-course/chapter1/1), [PEFT](https://huggingface.co/docs/peft), [DPO paper](https://arxiv.org/abs/2305.18290).
+
+<hr>
+<h2>Part 6 &#226;€” Generative-AI Model Families (Week 14)</h2>
+
+<strong>Concepts.</strong> ChatGPT/OpenAI, Claude/Anthropic, Gemini/Google, DeepSeek, Mistral, Llama/Meta, and Qwen/Alibaba are model families and platforms, not interchangeable checkboxes. Closed providers commonly offer fast managed inference and integrated tools; open-weight families offer deployment control and customization. Capabilities, prices, context limits, and terms change frequently&#226;€”benchmark the current versions against your workload.
+
+<pre>
+<p>application -&gt; internal model gateway -&gt; policy/route -&gt; provider or self-hosted model -&gt; validated result</p>
+</pre>
+
+<strong>Selection guide.</strong> Use the model that wins your task evaluation at acceptable latency/cost/privacy. Startups tend to choose managed APIs for speed. Enterprises may add a gateway, regional routing, approved vendors, audit controls, or self-hosted Llama/Qwen/Mistral/DeepSeek-class models when privacy, customization, or sustained volume justify it.
+
+<strong>Python.</strong>
+<pre>python
+<p>def route(task, risk):</p>
+<p>    return &quot;strong-model&quot; if risk == &quot;high&quot; else (&quot;small-model&quot; if task == &quot;classify&quot; else &quot;balanced-model&quot;)</p>
+</pre>
+
+<strong>Production / economics.</strong> Keep provider-specific SDK code behind one interface; preserve test fixtures; evaluate fallback models before an outage. Never hardcode price claims or model names in product logic. Cost is input tokens + output tokens + tool/retrieval/hosting/engineering overhead.
+
+<strong>Pitfalls / interview.</strong> Leaderboard scores do not equal your quality. Ask: How would you compare providers fairly? What does vendor lock-in look like operationally?
+
+<strong>Project.</strong> Build a model-router benchmark with 50 representative tasks, quality rubric, p95 latency, token usage, and cost per successful outcome.
+
+<strong>Resources.</strong> Official model docs: [OpenAI](https://platform.openai.com/docs/), [Anthropic](https://docs.anthropic.com/), [Google](https://ai.google.dev/), [Hugging Face](https://huggingface.co/docs).
+
+<hr>
+<h2>Part 7 &#226;€” Prompt Engineering (Week 15)</h2>
+
+<strong>Concepts.</strong> A prompt is an interface contract: role/instructions, task, trusted context, examples, constraints, and output schema. **Zero-shot** uses instructions only; **few-shot** adds examples. Chain-of-thought can improve some reasoning but should not be treated as a trusted audit record; request a concise answer and verifiable evidence. **ReAct** alternates reasoning/action observations. XML labels can separate trusted sections; JSON/schema outputs make machines safer. System/developer/user messages set different instruction layers; application policy must not rely only on prompt wording.
+
+<pre>
+<p>system/developer policy + user task + retrieved context -&gt; model -&gt; JSON schema validation -&gt; UI/tool</p>
+</pre>
+
+<strong>Python.</strong>
+<pre>python
+<p>from pydantic import BaseModel</p>
+<p>class Triage(BaseModel): category: str; urgency: int</p>
+<p>prompt = &quot;Return JSON matching: category string, urgency integer 1-5. Ticket: {{text}}&quot;</p>
+</pre>
+
+<strong>Production / economics.</strong> Prefer structured outputs/function calling to prose parsing. Version prompts; add evals before edits; keep examples short and representative; place stable prefixes consistently for supported prompt caches. XML/Markdown/JSON do not magically save tokens&#226;€”the right format is the clearest, shortest format for the model and task.
+
+<strong>Pitfalls / interview.</strong> Prompts cannot authorize money movement or bypass RBAC. Ask: Zero-shot vs few-shot? Why validate model JSON again? How do you test a prompt regression?
+
+<strong>Project.</strong> Create an extraction service with structured output, prompt versions, 30 golden tests, and an injection-resistance test suite.
+
+<strong>Resources.</strong> [OpenAI prompting](https://platform.openai.com/docs/guides/prompt-engineering), [Anthropic prompting](https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview).
+
+<hr>
+<h2>Part 8 &#226;€” AI Agents (Weeks 16&#226;€“17)</h2>
+
+<strong>Concepts.</strong> An agent is a bounded loop that uses a model to select tools/steps toward a goal. Agentic AI is useful when paths vary; a deterministic workflow is better when steps are known. Single-agent systems are easier to debug; multi-agent systems are justified only for genuinely separable roles. Planning decomposes work; reflection checks results but can add latency/cost. Short-term memory is current state; long-term memory is explicitly saved, permissioned facts. Retrieval fetches knowledge. Orchestration persists state, budgets, retries, and approvals. MCP is a protocol for connecting models to external tools/data; treat every MCP server as third-party code with permissions.
+
+<pre>
+<p>state -&gt; planner -&gt; approved tool -&gt; observation -&gt; evaluator/budget -&gt; next step or approval</p>
+<p>  ^                                                                      |</p>
+<p>  +--------------------------- checkpoint / resume ---------------------+</p>
+</pre>
+
+<strong>Frameworks.</strong> Plain Python first. LangGraph for durable state graphs; CrewAI/AutoGen for higher-level multi-agent prototypes; PydanticAI for typed Python agents; OpenAI Agents SDK for its provider-aligned agent primitives. Choose based on required control, observability, and team familiarity&#226;€”not hype.
+
+<strong>Python.</strong>
+<pre>python
+<p>ALLOWED = {&quot;lookup_order&quot;}</p>
+<p>def execute_tool(name, args):</p>
+<p>    if name not in ALLOWED: raise PermissionError(&quot;tool not permitted&quot;)</p>
+<p>    return {&quot;status&quot;: &quot;shipped&quot;, **args}</p>
+</pre>
+
+<strong>Production / economics.</strong> Typed schemas, least privilege, per-run time/token/tool budgets, idempotency keys, durable checkpoints, human approval for writes, trace replay, and a deterministic fallback. Multi-agent coordination multiplies tokens, latency, and failure modes.
+
+<strong>Pitfalls / interview.</strong> Never grant an agent unrestricted shell, SQL, or browser permissions. Ask: Agent vs workflow? How do you stop loops? How do you resume after a crash?
+
+<strong>Project.</strong> Build an order-support agent that reads status, drafts a refund request, pauses for approval, and records every action.
+
+<strong>Resources.</strong> [MCP](https://modelcontextprotocol.io/), [LangGraph](https://docs.langchain.com/oss/python/langgraph/overview), [PydanticAI](https://ai.pydantic.dev/), [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/).
+
+<hr>
+<h2>Part 9 &#226;€” RAG (Weeks 18&#226;€“19)</h2>
+
+<strong>Concepts.</strong> Retrieval-augmented generation (RAG) fetches current, private, authorized evidence before generating. Embeddings encode semantic similarity; a vector database stores/searches them. Chunking chooses meaningful passages; chunk size/overlap balance recall against irrelevant context. Metadata contains source, version, tenant, ACL, time, and type. Hybrid search combines lexical and vector signals; reranking reorders candidates; citations show evidence.
+
+<pre>
+<p>documents -&gt; parse/clean -&gt; chunks + metadata -&gt; embed -&gt; vector/keyword index</p>
+<p>question -&gt; ACL filter -&gt; hybrid retrieve -&gt; rerank -&gt; grounded prompt -&gt; answer + citations</p>
+</pre>
+
+<strong>Databases.</strong> Pinecone: managed vector service; Weaviate/Qdrant/Milvus: vector platforms with managed/self-host options; Chroma: convenient local/prototype option. Postgres + pgvector is often the best first production choice when scale/features are modest and relational metadata is central. Benchmark recall, filters, operations, and price against your corpus.
+
+<strong>Python.</strong>
+<pre>python
+<p>def chunks(text, size=400, overlap=60):</p>
+<p>    step = size - overlap</p>
+<p>    return [text[i:i+size] for i in range(0, len(text), step)]</p>
+</pre>
+
+<strong>Production / economics.</strong> Enforce ACLs before retrieval; retain source/version; tombstone deleted docs; evaluate retrieval separately from answer quality; abstain if evidence is weak. Embed incrementally by content hash, retrieve few strong chunks, deduplicate overlap, and cache frequent results.
+
+<strong>Pitfalls / interview.</strong> A vector similarity score is not truth. Ask: Why hybrid search? How do you prevent cross-tenant leakage? How do chunk choices affect faithfulness?
+
+<strong>Project.</strong> Citation-first PDF handbook bot with ingestion, tenant filters, hybrid retrieval, reranking, 100 eval questions, and a &#226;€œnot found&#226;€ response.
+
+<strong>Resources.</strong> [FAISS](https://faiss.ai/), [Sentence Transformers](https://www.sbert.net/), [RAG paper](https://arxiv.org/abs/2005.11401), provider docs above.
+
+<hr>
+<h2>Part 10 &#226;€” AI Infrastructure (Weeks 20&#226;€“21)</h2>
+
+<strong>Concepts.</strong> GPUs accelerate parallel tensor operations; CUDA is NVIDIA&#226;€™s programming/runtime platform. Inference generates predictions/tokens; serving packages it behind an API. vLLM improves LLM serving throughput with efficient KV-cache management; Ollama makes local model experimentation simple; TensorRT optimizes NVIDIA inference. Docker packages software; Kubernetes schedules/scales containers; FastAPI exposes typed Python services.
+
+<pre>
+<p>client -&gt; WAF/API gateway -&gt; FastAPI -&gt; queue/model gateway -&gt; GPU inference pods (vLLM/TensorRT)</p>
+<p>                              |                    |                 |</p>
+<p>                         Postgres/Redis        tracing          object/vector store</p>
+</pre>
+
+<strong>Python.</strong>
+<pre>python
+<p>from fastapi import FastAPI</p>
+<p>app = FastAPI()</p>
+<p>@app.get(&quot;/healthz&quot;)</p>
+<p>def healthz(): return {&quot;ok&quot;: True}</p>
+</pre>
+
+<strong>Production / economics.</strong> Start managed/serverless for spiky workloads. Self-host when privacy, custom models, or sustained utilization produces a measured win. Add queues for long work, health checks, autoscaling, GPU utilization metrics, quotas, and fallback capacity. Idle GPUs are expensive; batch only where it does not violate latency SLOs.
+
+<strong>Pitfalls / interview.</strong> Don&#226;€™t serve lengthy generation synchronously without cancellation/timeouts. Ask: What is continuous batching? Why separate API servers from workers? CUDA vs a model framework?
+
+<strong>Project.</strong> Containerize a FastAPI RAG service; add asynchronous ingestion and deploy a staging stack with health checks and load test.
+
+<strong>Resources.</strong> [vLLM](https://docs.vllm.ai/), [Ollama](https://docs.ollama.com/), [TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/), [Kubernetes](https://kubernetes.io/docs/home/).
+
+<hr>
+<h2>Part 11 &#226;€” Cost Optimization (Week 22)</h2>
+
+<strong>Concept.</strong> Optimize cost per successful business outcome, preserving evaluated quality and safety&#226;€”not simply token count.
+
+<pre>
+<p>request -&gt; classify complexity -&gt; cache? -&gt; route small/large model -&gt; cap tools/context/output -&gt; measure outcome + spend</p>
+</pre>
+
+<strong>Techniques.</strong> Prompt/context compression removes repeated or irrelevant text. Exact caching returns the same result for an identical request; semantic caching reuses a validated answer for a sufficiently similar query and must include tenant/ACL/version in its key. Batch inference improves throughput for offline work. Model routing reserves stronger models for hard/high-risk tasks. Smaller models, quantization, embedding reuse, token reduction, and streaming can lower cost or perceived latency. Streaming usually does **not** lower token cost; it improves time-to-first-token and enables cancellation.
+
+<strong>Python.</strong>
+<pre>python
+<p>from hashlib import sha256</p>
+<p>cache = {}</p>
+<p>def cached(prompt, model, version):</p>
+<p>    return cache.get(sha256(f&quot;{model}:{version}:{prompt}&quot;.encode()).hexdigest())</p>
+</pre>
+
+<strong>Production example.</strong> A support RAG system: cache permission-safe FAQs; use hybrid retrieval of 4 chunks; route classification to a small model; use a strong model only when the evaluator/complexity classifier requires it; set 900 output-token and 3-tool caps; batch nightly embedding; dashboard cost by tenant and resolved case.
+
+<strong>Pitfalls / interview.</strong> Do not share semantic-cache answers across users/tenants. Ask: Why is cost/request misleading? How do you test a router? When does self-hosting pay off?
+
+<strong>Project.</strong> Add budgets, tiered routing, cache hit metrics, batch embedding, and an outcome-based cost dashboard to the capstone.
+
+<strong>Resources.</strong> [OpenAI prompt caching](https://platform.openai.com/docs/guides/prompt-caching), [vLLM](https://docs.vllm.ai/).
+
+<hr>
+<h2>Part 12 &#226;€” Token Optimization (Week 23)</h2>
+
+<strong>Concepts.</strong> A token is a tokenizer-defined text chunk, not a word or character. Token counting must use the tokenizer of the target model. Markdown can reduce tokens when headings/lists replace repetitive prose, but tables/backticks may increase them. XML can make boundaries clear; JSON is compact and machine-parseable&#226;€”neither universally uses fewer tokens. Measure, do not guess.
+
+<pre>
+<p>raw conversation/docs -&gt; token count -&gt; prune irrelevant turns -&gt; summarize/externalize artifacts -&gt; retrieve evidence -&gt; capped prompt</p>
+</pre>
+
+<strong>Techniques.</strong> Use concise task instructions, short representative few-shot examples, schema instead of prose, context pruning, retrieval/reranking, conversation summaries, reference IDs, compression with evaluation, and output caps. Preserve source IDs/version/ACL after compression. Avoid silently compressing legal/medical/financial evidence.
+
+<strong>Python.</strong>
+<pre>python
+<p>def rough_token_estimate(text: str) -&gt; int:</p>
+<p>    return max(1, len(text) // 4)  # planning estimate only; use target tokenizer in production</p>
+</pre>
+
+<strong>Production / economics.</strong> Enforce per-feature token budgets and log input/output tokens. A 20% context reduction may cut latency and cost, but only ship it if retrieval/answer evals stay within a predeclared regression budget.
+
+<strong>Pitfalls / interview.</strong> &#226;€œMore context&#226;€ can make answers worse through distraction. Ask: What is lost-in-the-middle? Why count output tokens separately?
+
+<strong>Project.</strong> Build a prompt linter that shows token composition, flags duplicate context, and compares original/compressed prompt evaluation scores.
+
+<strong>Resources.</strong> [tiktoken](https://github.com/openai/tiktoken), [Hugging Face tokenizers](https://huggingface.co/docs/tokenizers/).
+
+<hr>
+<h2>Part 13 &#226;€” Model Comparison (Week 24)</h2>
+
+<strong>Method.</strong> Do not publish a static winner. Build a living scorecard for current GPT, Claude, Gemini, Llama, DeepSeek, Qwen, and Mistral versions using your prompts, regions, contracts, and dates. Compare speed (TTFT/p50/p95), task accuracy, coding tests, total cost, usable context, reasoning-task success, multimodal accuracy, structured/function-call reliability, privacy/deployment options, and outage behavior.
+
+<p>| Dimension | How to measure | Common mistake |</p>
+<p>|---|---|---|</p>
+<p>| Accuracy/reasoning | blinded labeled tasks + human calibration | using one impressive demo |</p>
+<p>| Coding | unit tests, security checks, patch acceptance | judging only prose explanation |</p>
+<p>| Speed | time-to-first-token and p95 end-to-end | measuring provider time only |</p>
+<p>| Cost | input/output/tool/hosting cost per successful task | comparing price per million tokens alone |</p>
+<p>| Context | useful recall/faithfulness at long input | assuming advertised window is useful context |</p>
+<p>| Multimodal/tools | schema success + task correctness | testing only happy-path JSON |</p>
+
+<strong>Python.</strong>
+<pre>python
+<p>def winner(rows):</p>
+<p>    # quality threshold first; then select lowest measured cost among qualifiers</p>
+<p>    return min((r for r in rows if r[&quot;quality&quot;] &gt;= .90), key=lambda r: r[&quot;cost&quot;])</p>
+</pre>
+
+<strong>Production / economics.</strong> Maintain model-version fixtures and scheduled re-evals. Pin versions when available; canary upgrades; route by task/risk. Context/window, price, and availability are time-sensitive and must be rechecked in official docs before procurement.
+
+<strong>Interview.</strong> Design a fair model bake-off. Explain why a long context window does not eliminate RAG.
+
+<strong>Project.</strong> Publish a reproducible comparison harness and a decision record&#226;€”not a permanent leaderboard.
+
+<strong>Resources.</strong> Official provider model documentation and your organization&#226;€™s current pricing/contract pages.
+
+<hr>
+<h2>Part 14 &#226;€” AI Coding (Week 25)</h2>
+
+<strong>Tools.</strong> VS Code + extensions, Cursor, Windsurf, Claude Code, Codex, and GitHub Copilot help inspect, generate, refactor, test, and review code. Their exact capabilities and privacy controls change, so use the current vendor docs and company policy.
+
+<pre>
+<p>ticket/spec -&gt; plan -&gt; AI-assisted small change -&gt; local tests/lint/typecheck -&gt; human review -&gt; CI -&gt; deploy</p>
+</pre>
+
+<strong>Best workflow.</strong> Give the assistant relevant files and acceptance criteria; ask for a plan; make small diffs; run tests; inspect the diff/security implications; commit only validated work. Use repo instructions, test fixtures, linters, typed schemas, and CI as guardrails. Never paste secrets/customer data or accept generated dependency/code changes without review.
+
+<strong>Python.</strong>
+<pre>python
+<p>def acceptance(result):</p>
+<p>    return result[&quot;tests_pass&quot;] and result[&quot;security_reviewed&quot;] and result[&quot;diff_reviewed&quot;]</p>
+</pre>
+
+<strong>Production / economics.</strong> Centralize policy, approve extensions/connectors, keep audit logs where required, and measure developer outcomes rather than autocomplete volume. AI coding reduces drafting time; it does not transfer ownership of correctness to a tool.
+
+<strong>Interview.</strong> How do you use coding agents safely? How would you prevent an agent from making a broad, risky refactor?
+
+<strong>Project.</strong> Use an AI coding tool to implement a feature through a written plan, test-first changes, review checklist, and before/after productivity note.
+
+<strong>Resources.</strong> Current official documentation for the selected IDE/agent; [OWASP secure coding](https://owasp.org/www-project-top-ten/).
+
+<hr>
+<h2>Part 15 &#226;€” MLOps and LLMOps (Weeks 26&#226;€“27)</h2>
+
+<strong>Concepts.</strong> MLOps/LLMOps brings CI/CD, deployment, evaluation, monitoring, observability, tracing, prompt/model versioning, and A/B testing to probabilistic systems. Traces link user request &#226;†’ retrieval &#226;†’ model/tool calls &#226;†’ output &#226;†’ feedback. Version code, prompt, model, data/index, evaluation set, and configuration together.
+
+<pre>
+<p>Git PR -&gt; unit/integration/security/evals -&gt; staging -&gt; canary/A-B -&gt; production</p>
+<p>  ^                                                         |</p>
+<p>  +---- traces + metrics + feedback + incidents + rollback -+</p>
+</pre>
+
+<strong>Python.</strong>
+<pre>python
+<p>def release_gate(m):</p>
+<p>    return m[&quot;groundedness&quot;] &gt;= .90 and m[&quot;p95_s&quot;] &lt;= 5 and m[&quot;cost_per_task&quot;] &lt;= .05</p>
+</pre>
+
+<strong>Production / economics.</strong> Use feature flags, canaries, release gates, redacted OpenTelemetry-compatible traces, SLO alerts, prompt registry, model registry, and rollback runbooks. A/B-test measurable outcomes with safeguards; never test harmful behavior merely to maximize engagement.
+
+<strong>Pitfalls / interview.</strong> Raw traces can leak PII. Ask: What belongs in a release gate? What differs between offline and online evals? How do you identify a bad model version?
+
+<strong>Project.</strong> Add CI eval gates, tracing, a dashboard, canary release simulation, and incident runbook to the RAG bot.
+
+<strong>Resources.</strong> [OpenTelemetry](https://opentelemetry.io/docs/), [MLflow](https://mlflow.org/docs/latest/), [LangSmith evaluation](https://docs.langchain.com/langsmith/evaluation).
+
+<hr>
+<h2>Part 16 &#226;€” AI Security (Week 28)</h2>
+
+<strong>Threats.</strong> Prompt injection attempts to override instructions; jailbreaks seek prohibited behavior; data leakage exposes secrets/PII; unsafe tool use creates real-world harm. Guardrails are layers: authentication, RBAC/ABAC, scoped tools, input/output moderation, PII detection/redaction, secrets management, rate limits, network boundaries, audit logs, human approval, and incident response.
+
+<pre>
+<p>input -&gt; auth + tenant/RBAC -&gt; PII/injection checks -&gt; model -&gt; output checks -&gt; approval -&gt; scoped action</p>
+<p>                     \----------------- immutable audit trail ------------------/</p>
+</pre>
+
+<strong>Python.</strong>
+<pre>python
+<p>def can_refund(role, amount): return role == &quot;finance_approver&quot; and amount &lt;= 500</p>
+</pre>
+
+<strong>Production / economics.</strong> Enforce authorization in application/data layers before retrieval and tool execution, not in model instructions. Use a secret manager&#226;€”not `.env` in production. Redaction lowers both risk and tokens. Security incidents and compliance remediation dwarf ordinary API costs.
+
+<strong>Pitfalls / interview.</strong> Do not expose arbitrary SQL/shell/browser tools. Ask: Explain indirect prompt injection. How do you protect multi-tenant RAG? Where are secrets stored?
+
+<strong>Project.</strong> Threat-model the capstone; add RBAC, tenant retrieval filters, redaction, injection corpus tests, tool allowlist, approvals, and audit records.
+
+<strong>Resources.</strong> [OWASP LLM Top 10](https://genai.owasp.org/llm-top-10/), [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework).
+
+<hr>
+<h2>Part 17 &#226;€” Building Production AI (Weeks 29&#226;€“30)</h2>
+
+<strong>Architecture.</strong> Design for scaling, latency, caching, retries, fallbacks, monitoring, logging, and cost from day one. A production system needs timeouts, circuit breakers, idempotency, queues, backpressure, multi-tenant isolation, retention/deletion controls, and an explicit failure UX.
+
+<pre>
+<p>UI -&gt; CDN/WAF -&gt; API -&gt; auth/policy -&gt; model gateway -&gt; providers/self-hosted inference</p>
+<p>                   |       |               |                         |</p>
+<p>              Postgres  Redis/cache    RAG/tools/queue          metrics/traces/logs</p>
+</pre>
+
+<strong>Python.</strong>
+<pre>python
+<p>def retryable(status): return status in {429, 500, 502, 503, 504}</p>
+</pre>
+
+<strong>Production example.</strong> A customer-support bot caches safe FAQs, queues document ingestion, uses a circuit breaker during provider errors, falls back to search + escalation rather than invented answers, records a trace ID, alerts on p95 latency/groundedness/cost, and enforces tenant budgets.
+
+<strong>Cost/token optimization.</strong> Cache validated results, route tasks, cap outputs, reuse embeddings, batch offline work, cancel abandoned streams, and attribute spend by feature/tenant/outcome. Add retry jitter and never blindly retry non-idempotent write tools.
+
+<strong>Interview.</strong> Draw an architecture for 10&#195;— traffic; explain graceful degradation and provider-outage behavior.
+
+<strong>Project.</strong> Deploy the capstone to staging with load tests, SLOs, cost dashboard, failure injection, backup/restore test, and rollback playbook.
+
+<strong>Resources.</strong> [Google SRE book](https://sre.google/sre-book/table-of-contents/), [AWS Well-Architected](https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html).
+
+<hr>
+<h2>Part 18 &#226;€” Portfolio Projects (run throughout)</h2>
+
+<p>Build these progressively, not as disconnected demos:</p>
+
+<li>**AI Chatbot:** structured chat, streaming, feedback, safety UX.</li>
+<li>**RAG bot / PDF chat:** ingestion, citations, ACLs, hybrid retrieval, evals.</li>
+<li>**Resume analyzer:** schema extraction, bias/privacy review, human decision support only.</li>
+<li>**Meeting assistant:** transcription, summary/action schema, consent/retention controls.</li>
+<li>**SQL agent:** read-only scoped database, semantic layer, query preview, approval for writes.</li>
+<li>**Coding agent:** sandboxed repository tools, tests, diff review, no unrestricted shell.</li>
+<li>**Research agent:** source provenance, claim extraction, citation validation, approval steps.</li>
+<li>**Email agent:** retrieval + drafts, send approval, idempotent send/logging.</li>
+<li>**Voice assistant:** ASR, tool flow, TTS, interruption/latency design, transcript privacy.</li>
+<li>**Customer-support bot:** full capstone: routing, RAG, tools, escalation, SLOs, cost controls.</li>
+
+<p>For each: diagram, Python service, production deployment, eval set, threat model, token/cost report, five interview questions, and a demo video.</p>
+
+<hr>
+<h2>Part 19 &#226;€” Interview Preparation (Weeks 31&#226;€“32)</h2>
+
+<p>Create a **500-question bank**, organized&#226;€”not memorized&#226;€”as: 50 foundations/math, 80 ML/deep learning, 100 LLM/prompting, 80 RAG, 70 agents/tools/MCP, 50 MLOps/infra, 40 security, and 30 behavioral/product questions. For every answer: define the concept, give a tradeoff, draw a system, state metrics, and describe a failure mode.</p>
+
+<strong>Representative questions.</strong>
+
+<li>Explain bias/variance and choose a churn metric.</li>
+<li>Derive why attention needs positional information.</li>
+<li>RAG vs fine-tuning vs a larger context window?</li>
+<li>Design chunking/evaluation for legal PDFs.</li>
+<li>How do you stop a tool-using agent from repeating a charge?</li>
+<li>What belongs in an LLM release gate?</li>
+<li>How would you migrate models without a quality regression?</li>
+<li>Design a multi-tenant, cited support assistant at 100 requests/second.</li>
+<li>Defend against indirect prompt injection in retrieved web content.</li>
+<li>Reduce a $100k/month LLM bill without lowering successful resolution rate.</li>
+
+<strong>System-design practice.</strong> Draw data flow, trust boundaries, API/async paths, storage, caching, observability, SLOs, costs, testing, and rollout. **Coding practice:** Python data structures, APIs, async I/O, SQL, tests, parsing/validation, basic ML, and a small RAG/tool loop.
+
+<strong>Project.</strong> Record ten 30-minute mock interviews; write an answer rubric; revise one capstone design after each mock.
+
+<strong>Resources.</strong> [System Design Primer](https://github.com/donnemartin/system-design-primer), official docs and your own project postmortems.
+
+<hr>
+<h2>Part 20 &#226;€” Latest AI Trends (maintain quarterly)</h2>
+
+<p>Track, test, and add to the scorecard rather than repeating headlines:</p>
+
+<li>**AI agents, tool use, MCP, browser/computer-use:** increasingly useful for bounded, approval-gated workflows; reliability and permission design remain the bottleneck.</li>
+<li>**Reasoning models:** can improve difficult tasks but require task-specific evaluation, budget caps, and careful latency/cost management.</li>
+<li>**Vision, voice, and multimodal models:** make document, speech, and visual workflows practical; privacy, consent, and evaluation expand with modalities.</li>
+<li>**Open-source/open-weight models:** Llama, Qwen, Mistral, DeepSeek-class ecosystems expand deployment choice; licenses, benchmarks, hosting, and security must be checked per release.</li>
+<li>**AI IDEs and coding agents:** shift engineering toward specification, test, review, and safe tool permissions.</li>
+<li>**SLMs, edge/on-device AI:** reduce latency, bandwidth, cost, and data exposure for narrow tasks; constrained memory/quality needs an explicit fallback.</li>
+<li>**Robotics:** combines perception, planning, control, simulation, and strict safety constraints; do not extrapolate chat-agent reliability to physical autonomy.</li>
+
+<strong>Trend evaluation loop.</strong>
+<pre>
+<p>new capability -&gt; threat/privacy review -&gt; small benchmark -&gt; cost/latency/quality scorecard -&gt; sandbox pilot -&gt; gated rollout</p>
+</pre>
+
+<strong>Resources.</strong> [Stanford AI Index](https://aiindex.stanford.edu/report/), [MCP specification](https://modelcontextprotocol.io/), [OpenAI docs](https://platform.openai.com/docs/), [Hugging Face](https://huggingface.co/docs). Recheck primary sources, prices, licenses, and provider policies each quarter.
+
+<hr>
+<h2>Final roadmap</h2>
+
+<pre>
+<p>0-2 months: Parts 1-5    -&gt; Python + ML + deep learning + LLM foundations</p>
+<p>3-4 months: Parts 6-10   -&gt; prompting + agents + RAG + infrastructure</p>
+<p>5-6 months: Parts 11-17  -&gt; efficiency + model selection + LLMOps + security + production</p>
+<p>7-8 months: Parts 18-20  -&gt; portfolio, system design, interviews, continuously updated trends</p>
+</pre>
+
+<p>Choose a specialization after the capstone: **Applied LLM Engineer** (product/RAG/agents), **ML Platform/MLOps** (serving/data/reliability), **Research Engineer** (PyTorch/training/papers), or **Decision AI** (forecasting/ranking/experimentation). The durable industry skill is not memorizing tools&#226;€”it is proving an AI system is useful, safe, measurable, maintainable, and economical.</p>
+</body></html>
